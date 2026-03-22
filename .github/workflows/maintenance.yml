@@ -47,7 +47,7 @@ jobs:
 
       - name: 📤 Upload summary
         if: steps.outdated.outputs.has_updates == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: outdated-packages
           path: update-summary.md
