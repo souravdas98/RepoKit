@@ -11,6 +11,12 @@ on:
       - develop
   workflow_dispatch:
 
+permissions:
+  contents: read
+  checks: write
+  security-events: write
+  pull-requests: write
+
 env:
   DOTNET_VERSION: '8.0.x'
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -84,13 +90,13 @@ jobs:
       - name: 📋 Restore dependencies
         run: dotnet restore
 
-      - name: 🏗️ Build (Release)
-        run: dotnet build --no-restore -c Release
-
       - name: 🔓 Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: 'csharp'
+
+      - name: 🏗️ Build (Release)
+        run: dotnet build --no-restore -c Release
 
       - name: 🔍 Perform CodeQL analysis
         uses: github/codeql-action/analyze@v2
