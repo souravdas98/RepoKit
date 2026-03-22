@@ -38,8 +38,9 @@ jobs:
       - name: 🏗️ Build Release
         run: dotnet build --no-restore -c Release
 
-      - name: ✅ Run unit tests
-        run: dotnet test --no-restore --no-build -c Release --verbosity minimal
+      # TODO: Uncomment when test projects are added
+      # - name: ✅ Run unit tests
+      #   run: dotnet test --no-restore --no-build -c Release --verbosity minimal
 
       - name: 📚 Verify XML documentation
         run: |
