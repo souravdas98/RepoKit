@@ -1,7 +1,8 @@
 namespace AutoRepository.Core;
 
 /// <summary>
-/// Read-only repository interface for entities of type <typeparamref name="T"/>.
+/// Read-only
+/// repository interface for entities of type <typeparamref name="T"/>.
 /// Provides async query operations without write capabilities.
 /// Use this when you want to prevent accidental writes from a consumer.
 /// </summary>
