@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <PackageId>RepoKit.EfCore</PackageId>
+    <Description>
+      Entity Framework Core implementation for RepoKit. Provides generic repository pattern, 
+      Unit of Work, and specification evaluator with automatic registration via [AutoRepository] attribute. 
+      Includes EfRepository&lt;T&gt;, EfUnitOfWork, and LINQ specification support.
+    </Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\RepoKit.EfCore.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <ProjectReference Include="..\RepoKit.Core\RepoKit.Core.csproj" />
+  </ItemGroup>
+</Project>

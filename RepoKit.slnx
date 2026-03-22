@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RepoKit.Core/RepoKit.Core.csproj" />
+    <Project Path="src/RepoKit.Dapper/RepoKit.Dapper.csproj" />
+    <Project Path="src/RepoKit.EfCore/RepoKit.EfCore.csproj" />
+  </Folder>
+</Solution>

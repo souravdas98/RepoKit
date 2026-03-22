@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <PackageId>RepoKit.Dapper</PackageId>
+    <Description>
+      Dapper implementation for RepoKit. Provides high-performance raw SQL repository 
+      with automatic registration via [AutoRepository] attribute. Includes DapperRepository&lt;T&gt; 
+      and DapperUnitOfWork for transaction management.
+    </Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\RepoKit.Dapper.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.28" />
+    <ProjectReference Include="..\RepoKit.Core\RepoKit.Core.csproj" />
+  </ItemGroup>
+</Project>

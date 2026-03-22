@@ -1,0 +1,82 @@
+<Project>
+  <!-- ── Identity ──────────────────────────────────────────────── -->
+  <PropertyGroup>
+    <Authors>Sourav Das</Authors>
+    <Company>Sourav Das</Company>
+    <Copyright>Copyright © $([System.DateTime]::Now.Year) Sourav Das</Copyright>
+    <NeutralLanguage>en-US</NeutralLanguage>
+  </PropertyGroup>
+  <!-- ── Version ───────────────────────────────────────────────── -->
+  <PropertyGroup>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
+  </PropertyGroup>
+  <!-- ── NuGet metadata ────────────────────────────────────────── -->
+  <PropertyGroup>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/SouravDas/RepoKit</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>repository;efcore;dapper;pattern;di;dotnet;clean-architecture</PackageTags>
+    <PackageReleaseNotes>https://github.com/SouravDas/RepoKit/releases</PackageReleaseNotes>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+  <!-- ── Multi-targeting ───────────────────────────────────────── -->
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <!-- dotnet pack builds a separate .dll for each TFM          -->
+    <!-- all 3 ship inside the single .nupkg automatically        -->
+  </PropertyGroup>
+  <!-- ── Build quality ─────────────────────────────────────────── -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
+  </PropertyGroup>
+  <!-- ── Deterministic builds ──────────────────────────────────── -->
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+  <!-- ── Source Link & symbols ─────────────────────────────────── -->
+  <PropertyGroup>
+    <RepositoryUrl>https://github.com/SouravDas/RepoKit</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <!-- ── Pack README & icon into every .nupkg ─────────────────── -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md">
+      <Pack>true</Pack>
+      <PackagePath>/</PackagePath>
+      <Visible>false</Visible>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)icon.png">
+      <Pack>true</Pack>
+      <PackagePath>/</PackagePath>
+      <Visible>false</Visible>
+    </None>
+  </ItemGroup>
+  <!-- ── Source Link package ───────────────────────────────────── -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+  <!-- ── Per-TFM conditional dependencies ─────────────────────── -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <!-- Add any net8.0-specific packages here if needed -->
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <!-- Add any net9.0-specific packages here if needed -->
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <!-- Add any net10.0-specific packages here if needed -->
+  </ItemGroup>
+</Project>

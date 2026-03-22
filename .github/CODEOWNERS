@@ -1,0 +1,33 @@
+# RepoKit Code Owners
+
+# Default owner for all files
+* @SouravDas
+
+# Core project
+/src/RepoKit.Core/             @SouravDas
+
+# EF Core project
+/src/RepoKit.EfCore/           @SouravDas
+
+# Dapper project
+/src/RepoKit.Dapper/           @SouravDas
+
+# Build and configuration
+*.csproj                       @SouravDas
+*.props                        @SouravDas
+*.targets                      @SouravDas
+Directory.Build.props          @SouravDas
+Directory.Build.targets        @SouravDas
+
+# CI/CD workflows
+/.github/workflows/            @SouravDas
+
+# Documentation
+/docs/                         @SouravDas
+*.md                           @SouravDas
+
+# Configuration files
+/.editorconfig                 @SouravDas
+/.gitignore                    @SouravDas
+/.gitattributes                @SouravDas
+sonar-project.properties       @SouravDas

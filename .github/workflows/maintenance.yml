@@ -1,0 +1,126 @@
+name: 🔄 Dependency Update & PR Automation
+
+on:
+  schedule:
+    # Check for updates daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  check-updates:
+    name: 🔄 Check for NuGet Updates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: 🔍 Check outdated packages
+        id: outdated
+        run: |
+          OUTDATED=$(dotnet package search --no-restore 2>&1 || dotnet list package --outdated)
+          echo "outdated=$OUTDATED" >> $GITHUB_OUTPUT
+          if echo "$OUTDATED" | grep -q "has.*update"; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📝 Create update list
+        if: steps.outdated.outputs.has_updates == 'true'
+        run: |
+          {
+            echo "## 📦 Outdated Packages Detected"
+            echo ""
+            echo "The following packages have new versions available:"
+            echo ""
+            dotnet list package --outdated
+          } > update-summary.md
+
+      - name: 📤 Upload summary
+        if: steps.outdated.outputs.has_updates == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: outdated-packages
+          path: update-summary.md
+
+  security-scan:
+    name: 🔐 Security Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: 🔐 Run security audit
+        continue-on-error: true
+        run: |
+          dotnet restore
+          dotnet list package --vulnerable
+
+      - name: 🛡️ Run Dependabot-style check
+        uses: dependabot/fetch-metadata@v1
+        continue-on-error: true
+
+  dotnet-format:
+    name: 🎨 Auto-Format Code
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: 🎨 Format code
+        run: dotnet format
+
+      - name: 📝 Check for changes
+        id: verify-changed-files
+        run: |
+          if git diff --exit-code; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔧 Create Pull Request
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: '🎨 chore: auto-format code'
+          title: '🎨 chore: auto-format code'
+          body: |
+            ## Auto-Formatting Changes
+            
+            This PR contains automatic code formatting changes applied by `dotnet format`.
+            
+            - ✅ All code style rules applied
+            - ✅ Formatting consistency enforced
+            
+            Please review and merge if the changes look good.
+          branch: automated/format-code
+          delete-branch: true
+          labels: |
+            🤖 automated
+            🎨 formatting

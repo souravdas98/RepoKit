@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <!-- Configurations for code coverage -->
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Exclude>
+            [*.Tests]:*,
+            [*.UnitTests]:*,
+            [xunit.*]*
+          </Exclude>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+          <SingleHitBreakpoints>false</SingleHitBreakpoints>
+          <UseSourceLink>true</UseSourceLink>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+
+  <!-- Test run parameters -->
+  <RunConfiguration>
+    <MaxCpuCount>0</MaxCpuCount>
+    <ResultsDirectory>./TestResults</ResultsDirectory>
+    <TargetFramework>net8.0</TargetFramework>
+    <TestSessionTimeout>120000</TestSessionTimeout>
+  </RunConfiguration>
+
+  <!-- NUnit configuration -->
+  <NUnit>
+    <WorkDirectory>.</WorkDirectory>
+    <Verbosity>Verbose</Verbosity>
+  </NUnit>
+
+  <!-- xUnit configuration -->
+  <xUnit>
+    <MaxParallelThreads>0</MaxParallelThreads>
+  </xUnit>
+
+  <!-- Logging -->
+  <LoggerRunSettings>
+    <Verbosity>Verbose</Verbosity>
+  </LoggerRunSettings>
+</RunSettings>

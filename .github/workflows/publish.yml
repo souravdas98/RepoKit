@@ -1,0 +1,155 @@
+name: 🚀 Publish to NuGet
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.0.0)'
+        required: true
+        type: string
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NUGET_FEED_URL: https://api.nuget.org/v3/index.json
+
+jobs:
+  pre-publish:
+    name: 📋 Pre-Publish Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: 📋 Restore dependencies
+        run: dotnet restore
+
+      - name: 🏗️ Build Release
+        run: dotnet build --no-restore -c Release
+
+      - name: ✅ Run unit tests
+        run: dotnet test --no-restore --no-build -c Release --verbosity minimal
+
+      - name: 📚 Verify XML documentation
+        run: |
+          if ! dotnet build --no-restore -c Release /p:DocumentationFile=bin/docs.xml 2>&1 | grep -q "warning CS"; then
+            echo "✅ No documentation warnings"
+          fi
+
+  publish:
+    name: 🚀 Publish Packages
+    runs-on: ubuntu-latest
+    needs: pre-publish
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: 📋 Restore dependencies
+        run: dotnet restore
+
+      - name: 🏗️ Build Release
+        run: dotnet build --no-restore -c Release
+
+      - name: 📦 Pack NuGet packages
+        run: dotnet pack --no-restore --no-build -c Release -o ./nuget-packages
+
+      - name: 📤 Publish to NuGet.org
+        run: |
+          for package in ./nuget-packages/*.nupkg; do
+            if [[ ! "$package" =~ "\.symbols\.nupkg" ]]; then
+              dotnet nuget push "$package" \
+                --api-key ${{ secrets.NUGET_API_KEY }} \
+                --source ${{ env.NUGET_FEED_URL }} \
+                --skip-duplicate
+              echo "✅ Published: $(basename $package)"
+            fi
+          done
+
+      - name: 📤 Publish to GitHub Packages
+        run: |
+          for package in ./nuget-packages/*.nupkg; do
+            if [[ ! "$package" =~ "\.symbols\.nupkg" ]]; then
+              dotnet nuget push "$package" \
+                --api-key ${{ secrets.GITHUB_TOKEN }} \
+                --source https://nuget.pkg.github.com/SouravDas/index.json \
+                --skip-duplicate || echo "⚠️ Package may already exist in GitHub Packages"
+            fi
+          done
+
+      - name: 📤 Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nuget-packages
+          path: ./nuget-packages
+          retention-days: 30
+
+  post-publish:
+    name: 📢 Post-Publish Tasks
+    runs-on: ubuntu-latest
+    needs: publish
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📝 Create GitHub Release Notes
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const version = context.ref.replace('refs/tags/', '');
+            const changelog = require('fs').readFileSync('CHANGELOG.md', 'utf8');
+            
+            // Extract version-specific changelog
+            const versionPattern = new RegExp(`## ${version}[\\s\\S]*?(?=## \\d|$)`);
+            const match = changelog.match(versionPattern);
+            const releaseNotes = match ? match[0] : `Release ${version}`;
+            
+            github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: version,
+              name: `Release ${version}`,
+              body: releaseNotes,
+              draft: false,
+              prerelease: version.includes('-')
+            });
+
+      - name: 🔔 Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*RepoKit NuGet Publish*\n${{ job.status == 'success' && '✅ Success' || '❌ Failed' }}\n\nVersion: ${{ github.ref_name }}\n\n• NuGet: https://www.nuget.org/packages/RepoKit.Core/\n• GitHub: https://github.com/SouravDas/RepoKit/releases/${{ github.ref_name }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

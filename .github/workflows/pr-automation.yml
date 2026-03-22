@@ -1,0 +1,261 @@
+name: 🤖 Pull Request Automation
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    branches:
+      - main
+      - develop
+
+permissions:
+  pull-requests: write
+  contents: read
+  checks: read
+
+jobs:
+  pr-validation:
+    name: 📋 PR Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Add PR labels
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const labels = [];
+            
+            // Label by file changes
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const hasCore = files.some(f => f.filename.includes('RepoKit.Core'));
+            const hasEfCore = files.some(f => f.filename.includes('RepoKit.EfCore'));
+            const hasDapper = files.some(f => f.filename.includes('RepoKit.Dapper'));
+            const hasDocs = files.some(f => f.filename.endsWith('.md'));
+            const hasTests = files.some(f => f.filename.includes('Test'));
+
+            if (hasCore) labels.push('🔷 core');
+            if (hasEfCore) labels.push('🔵 ef-core');
+            if (hasDapper) labels.push('💧 dapper');
+            if (hasDocs) labels.push('📚 documentation');
+            if (hasTests) labels.push('✅ tests');
+
+            // Label by PR size
+            const additions = files.reduce((sum, f) => sum + f.additions, 0);
+            if (additions > 500) {
+              labels.push('📏 large');
+            } else if (additions > 100) {
+              labels.push('📋 medium');
+            } else {
+              labels.push('✏️ small');
+            }
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: [...new Set(labels)]
+              });
+            }
+
+      - name: 💬 Post PR checklist comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const hasChecklist = comments.some(c => c.body.includes('## PR Checklist'));
+            
+            if (!hasChecklist) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `## ✅ PR Checklist
+
+Please ensure you have completed the following before requesting review:
+
+- [ ] Code follows the project's coding standards
+- [ ] New features include unit tests
+- [ ] Documentation has been updated
+- [ ] CHANGELOG.md has been updated
+- [ ] No breaking changes (or documented in PR)
+- [ ] All conflicts resolved
+- [ ] Tests pass locally
+- [ ] No new compiler warnings
+
+## 🔍 Reviewer Guidelines
+
+- [ ] Code is clear and maintainable
+- [ ] Tests provide adequate coverage
+- [ ] No security vulnerabilities introduced
+- [ ] Documentation is accurate
+- [ ] Changes align with project goals
+
+---
+
+**Generated automatically by GitHub Actions**`
+              });
+            }
+
+      - name: 🔗 Link related issues
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            // Check if PR description mentions issues
+            const issuePattern = /#(\d+)/g;
+            const matches = pr.body?.match(issuePattern) || [];
+            
+            if (matches.length > 0) {
+              console.log(`Found ${matches.length} linked issues`);
+            }
+
+  branch-check:
+    name: 🌿 Branch Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ✅ Validate branch name
+        run: |
+          BRANCH=${{ github.head_ref }}
+          echo "Checking branch: $BRANCH"
+          
+          if [[ $BRANCH =~ ^(feature|bugfix|hotfix|release|docs|chore|refactor)\/[a-z0-9\-]+$ ]]; then
+            echo "✅ Branch name follows convention"
+            exit 0
+          else
+            echo "❌ Branch name should follow pattern: {type}/{description}"
+            echo "Valid types: feature, bugfix, hotfix, release, docs, chore, refactor"
+            echo "Example: feature/add-caching, bugfix/memory-leak"
+            exit 1
+          fi
+
+  commit-check:
+    name: 📝 Commit Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ✅ Validate conventional commits
+        uses: amannn/action-semantic-pull-request@v5
+        with:
+          validateSingleCommitFormat: false
+          validateSingleCommit: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  pr-summary:
+    name: 📊 Generate PR Summary
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📊 Create summary
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const additions = files.reduce((sum, f) => sum + f.additions, 0);
+            const deletions = files.reduce((sum, f) => sum + f.deletions, 0);
+            const filesChanged = files.length;
+
+            const summary = `## 📊 Change Summary
+
+| Metric | Value |
+|--------|-------|
+| Files Changed | ${filesChanged} |
+| Additions | +${additions} |
+| Deletions | -${deletions} |
+| Net Change | ${additions - deletions > 0 ? '+' : ''}${additions - deletions} |
+
+### Changed Files
+
+${files.slice(0, 10).map(f => 
+  `- \`${f.filename}\` (+${f.additions} -${f.deletions})`
+).join('\n')}
+
+${files.length > 10 ? `... and ${files.length - 10} more files` : ''}
+`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: summary
+            });
+
+  stale-check:
+    name: ⏰ Stale Branch Detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ⏰ Check branch staleness
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const baseUpdated = new Date(pr.base.repo.updated_at);
+            const headUpdated = new Date(pr.head.repo.updated_at);
+            const daysSinceSync = Math.floor((baseUpdated - headUpdated) / (1000 * 60 * 60 * 24));
+
+            if (daysSinceSync > 7) {
+              github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `⚠️ **Stale Branch Warning**\n\nThis branch hasn't been synced with \`${pr.base.ref}\` for ${daysSinceSync} days. Please sync to get the latest changes:\n\n\`\`\`bash\ngit fetch origin\ngit rebase origin/${pr.base.ref}\ngit push --force-with-lease\n\`\`\``
+              });
+            }
