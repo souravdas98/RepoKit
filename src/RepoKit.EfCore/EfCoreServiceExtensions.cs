@@ -10,6 +10,13 @@ namespace AutoRepository.EfCore;
 /// </summary>
 public static class EfCoreServiceExtensions
 {
+    /// <summary>
+    /// Registers Entity Framework Core as the ORM for repository implementations.
+    /// Call this before <see cref="Core.ServiceCollectionExtensions.AddAutoRepositories"/>.
+    /// </summary>
+    /// <typeparam name="TContext">The DbContext type.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddAutoRepositoryEfCore<TContext>(
         this IServiceCollection services
     )

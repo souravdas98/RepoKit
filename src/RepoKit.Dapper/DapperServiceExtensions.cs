@@ -1,3 +1,7 @@
+using System.Data;
+using AutoRepository.Core;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace AutoRepository.Dapper;
 
 /// <summary>
