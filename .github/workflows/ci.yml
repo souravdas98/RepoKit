@@ -101,37 +101,38 @@ jobs:
       - name: 🔍 Perform CodeQL analysis
         uses: github/codeql-action/analyze@v2
 
-  code-quality:
-    name: 💭 SonarQube Code Quality
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+  # TODO: Uncomment when SONAR_TOKEN secret is configured
+  # code-quality:
+  #   name: 💭 SonarQube Code Quality
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
 
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  #   steps:
+  #     - name: 📥 Checkout code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - name: 🔧 Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+  #     - name: 🔧 Setup .NET
+  #       uses: actions/setup-dotnet@v4
+  #       with:
+  #         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: 📋 Restore dependencies
-        run: dotnet restore
+  #     - name: 📋 Restore dependencies
+  #       run: dotnet restore
 
-      - name: 🏗️ Build
-        run: dotnet build --no-restore -c Release
+  #     - name: 🏗️ Build
+  #       run: dotnet build --no-restore -c Release
 
-      - name: 🧹 SonarQube Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=SouravDas_RepoKit
-            -Dsonar.organization=soravdas
+  #     - name: 🧹 SonarQube Scan
+  #       uses: SonarSource/sonarcloud-github-action@master
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #       with:
+  #         args: >
+  #           -Dsonar.projectKey=SouravDas_RepoKit
+  #           -Dsonar.organization=soravdas
 
   lint:
     name: 🎨 Linting & Formatting
