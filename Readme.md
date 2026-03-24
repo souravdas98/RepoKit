@@ -7,8 +7,8 @@ A lightweight, production-ready .NET library that eliminates repository boilerpl
 [![NuGet version](https://img.shields.io/nuget/v/RepoKit.Core)](https://www.nuget.org/packages/RepoKit.Core/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET 8+](https://img.shields.io/badge/.NET-8%2B-blue)](https://dotnet.microsoft.com)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/SouravDas/RepoKit/ci.yml?branch=main)](https://github.com/SouravDas/RepoKit/actions/workflows/ci.yml)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=SouravDas_RepoKit&metric=alert_status)](https://sonarcloud.io/dashboard?id=SouravDas_RepoKit)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/souravdas98/RepoKit/ci.yml?branch=main)](https://github.com/souravdas98/RepoKit/actions/workflows/ci.yml)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=souravdas98_RepoKit&metric=alert_status)](https://sonarcloud.io/dashboard?id=souravdas98_RepoKit)
 
 ---
 
